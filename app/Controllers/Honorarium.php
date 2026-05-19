@@ -190,6 +190,17 @@ class Honorarium extends BaseController
         }
     }
 
+    public function getFilesInfo()
+    {
+        $request = service('request');
+
+        $applicationId = $request->getPost('applicationId');
+
+        $files = $this->honorariumModel->getAttachements($applicationId);
+
+        return view('Honorarium/view-attachments', ['files' => $files]);
+    }
+
     public function downloadHonorariumForm($honorariumId)
     {
         //$request      = service('request');

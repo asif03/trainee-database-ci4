@@ -105,6 +105,8 @@ $routes->group('bills', ['filter' => 'groups:superadmin,admin,rtm-admin,rtm-user
     $routes->get('fetch-honorarium-training/edit/(:num)', 'Honorarium::getHonorariumTrainingInfo/$1', ['as' => 'bills.training.edit']);
     $routes->put('update-honorarium-training/(:num)', 'Honorarium::updateHonorariumTrainingInfo/$1', ['as' => 'bills.training.update']);
 
+    $routes->post('fetch-files', 'Honorarium::getFilesInfo');
+
     //$routes->get('download-honorarium-form/(:num)', 'Honorarium::downloadHonorariumForm/$1');
     //$routes->get('fetch-honorarium-trainings/(:num)', 'Honorarium::getHonorariumTrainings/$1');
 

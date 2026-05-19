@@ -73,7 +73,7 @@ class Filters extends BaseFilters
         'before' => [
             // 'honeypot',
             'csrf'    => ['except' => ['bills/fetch-honorariums', 'bills/fetch-honorarium-trainings', 'bills/approve-honorarium', 'bills/get-statistics', 'bills/reject-honorarium', 'applications/fetch-applicants',
-                'applications/fetch-files', 'reports/get-bills', 'reports/get-applications', 'reports/export-bill-to-excel', 'reports/export-application-to-excel',
+                'applications/fetch-files', 'bills/fetch-files', 'reports/get-bills', 'reports/get-applications', 'reports/export-bill-to-excel', 'reports/export-application-to-excel',
                 'fcps-part-one/fetch-candidates', 'trainings/fetch-trainees', 'trainings/fetch-progress-report/*', 'trainings/approve-progress-report',
                 'trainings/receive-progress-report', 'trainings/get-supervisor/*', 'trainings/honorarium-bill-application']],
             // 'invalidchars',

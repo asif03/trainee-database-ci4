@@ -142,13 +142,14 @@ class HonorariumInformationModel extends Model
     public function getBillInfos($where = [])
     {
         $builder = $this->db->table('honorarium_information hi');
-        $builder->select('hi.id, hi.applicant_id, hi.bill_sl_no, hi.training_type, ap.name, ap.mobile, hi.bmdc_reg_no, ap.fcps_reg_no, ap.date_of_birth, ap.nid, ap.fcps_speciallity,
-            ap.fcps_year, ap.fcps_month, ap.gander, hi.training_institute_id, ti.name AS training_institute_name, hi.department_id, sp.name AS department_name_new, hi.department_name, hi.previous_training_inmonth,
+        $builder->select('hi.id, hi.applicant_id, hi.bill_sl_no, hi.training_type, ap.name, ap.mobile, hi.bmdc_reg_no, ap.fcps_reg_no, ap.date_of_birth, ap.nid, sp.name AS fcps_speciallity,
+            ap.fcps_year, ap.fcps_month, ap.gander, hi.training_institute_id, ti.name AS training_institute_name, hi.department_id, dp.name AS department_name_new, hi.department_name, hi.previous_training_inmonth,
             hi.honorarium_position, bnk.bank_name AS new_bank_name, ap.branch_name, ap.account_no, ap.routing_number, hi.honorarium_year,  hi.honorarium_slot_id, hs.slot_name, hi.eligible_status');
         $builder->join('applicant_information ap', 'hi.applicant_id = ap.applicant_id', 'left');
         $builder->join('honorarium_slot hs', 'hi.honorarium_slot_id = hs.id', 'left');
         $builder->join('institute ti', 'hi.training_institute_id = ti.institute_id', 'left');
-        $builder->join('speciality sp', 'hi.department_id = sp.speciality_id', 'left');
+        $builder->join('speciality dp', 'hi.department_id = dp.speciality_id', 'left');
+        $builder->join('speciality sp', 'ap.speciality_id = sp.speciality_id', 'left');
         $builder->join('banks bnk', 'ap.bank_id = bnk.id', 'left');
         $builder->orderBy('hi.bill_sl_no', 'ASC');
 
@@ -235,5 +236,51 @@ class HonorariumInformationModel extends Model
         }
 
         return null;
+    }
+
+    public function getAttachements($applicantId)
+    {
+        /*$builder = $this->db->table('applicant_files');
+        $builder->select('fiile_id, file_name, type');
+        $builder->where('applicant_id', $applicantId);
+        $builder->whereIn('type', ['provi_certifice', 'fcps_congrats', 'midterm_congrats']);
+
+        return $builder->get()->getResultArray();*/
+
+        $applicant = $this->db->table('applicant_information')->where('applicant_id', $applicantId)->get()->getRowArray();
+
+        if (empty($applicant)) {
+            return [];
+        }
+
+        $path = FCPATH . 'public/uploads/honorariums/'; // public/uploads/honorariums
+
+        // Get all files
+        $files = glob($path . $applicant['bmdc_reg_no'] . '-*');
+
+        $matchedFiles = [];
+
+        foreach ($files as $file) {
+            $fileName = basename($file);
+
+            // LIKE search
+            if (stripos($fileName, 'Cheque_Book') !== false) {
+                $matchedFiles[] = array(
+                    'fiile_id'  => null, // You can set this if you have an ID associated with the file
+                    'file_name' => $fileName,
+                    'type'      => 'cheque', // Set the type based on your requirements
+                );
+
+            } elseif (stripos($fileName, 'Provisional_Certificate') !== false) {
+                $matchedFiles[] = array(
+                    'fiile_id'  => null,
+                    'file_name' => $fileName,
+                    'type'      => 'provi_certifice',
+                );
+
+            }
+        }
+
+        return $matchedFiles;
     }
 }

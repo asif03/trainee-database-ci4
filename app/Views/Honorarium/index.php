@@ -439,7 +439,7 @@ $('#billList tbody').on('click', '.btn-reject', function() {
 function getFilesInfo(applicationId) {
 
   $.ajax({
-    url: '<?=base_url('applications/fetch-files')?>',
+    url: '<?=base_url('bills/fetch-files')?>',
     type: 'POST',
     data: {
       applicationId: applicationId
