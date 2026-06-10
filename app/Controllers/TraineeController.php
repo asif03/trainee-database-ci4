@@ -75,6 +75,67 @@ class TraineeController extends BaseController
 
     }
 
+    public function traineeBasicInfoUpdate()
+    {
+        // Check if the authenticated user has the 'trainee.basic.info.update' permission
+        if (!auth()->user()->can('trainee.basic.info.update')) {
+            // User does not have permission, so deny access.
+            //return redirect()->back()->with('error', 'You are not authorized to edit posts.');
+            //return redirect()->to('/403');
+            return redirect()->to('/403')->with('error', 'You are not authorized to access this information.');
+        }
+
+        $rules = [
+            'cell' => [
+                'rules'  => 'required|regex_match[/^01[3-9]\d{8}$/]',
+                'errors' => [
+                    'required'    => 'Mobile number is required.',
+                    'regex_match' => 'Please enter a valid mobile number with 11 digits.',
+                ],
+            ],
+        ];
+
+        $data = $this->request->getPost(array_keys($rules));
+
+        if (!$this->validateData($data, $rules)) {
+            return $this->traineeBasicInfo();
+        }
+
+        $validData = $this->validator->getValidated();
+        $regNo     = auth()->user()->username;
+
+        $updateData = [
+            'cell' => $validData['cell'],
+        ];
+
+        $update = $this->fcpsPartOneModel
+            ->where('reg_no', $regNo)
+            ->set($updateData)
+            ->update();
+
+        if ($update) {
+
+            $applicantInformation = $this->applicantInformationModel->where('fcps_reg_no', $regNo)->first();
+
+            //dd($applicantInformation);
+
+            if ($applicantInformation) {
+                $updateApplicationData = [
+                    'mobile' => $validData['cell'],
+                ];
+
+                $update = $this->applicantInformationModel
+                    ->where('fcps_reg_no', $regNo)
+                    ->set($updateApplicationData)
+                    ->update();
+            }
+
+            return redirect()->back()->with('success', 'Information updated successfully.');
+        } else {
+            return redirect()->back()->with('error', 'Ohh! Something went wrong...!');
+        }
+    }
+
     public function getSupervisorsByInstitute($instituteId)
     {
         $data = $this->supervisorModel->where('institute_id', $instituteId)->findAll();

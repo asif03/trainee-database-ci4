@@ -53,6 +53,7 @@ $routes->group('trainings', static function ($routes) {
 
     //For Trainee
     $routes->get('basic-info', 'TraineeController::traineeBasicInfo', ['as' => 'trainee.basic.info']);
+    $routes->post('basic-info', 'TraineeController::traineeBasicInfoUpdate', ['as' => 'trainee.basic.info.update']);
     $routes->get('progress-reports', 'TraineeController::createProgressReport', ['as' => 'trainee.progress.reports.create']);
     $routes->post('progress-reports', 'TraineeController::storeProgressReport');
     $routes->get('fetch-progress-report/(:num)', 'TraineeController::showProgressReport/$1');

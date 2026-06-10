@@ -92,6 +92,7 @@ class AuthGroups extends ShieldAuthGroups
 
         //Trainee permissions
         'trainee.basic.info'              => 'Can access own basic information',
+        'trainee.basic.info.update'       => 'Can update own basic information',
         'trainee.progress.reports.create' => 'Can create own progress reports',
         'trainee.training.application'    => 'Can create training application',
         'trainee.honorarium.application'  => 'Can create honorarium bill application',
@@ -189,6 +190,7 @@ class AuthGroups extends ShieldAuthGroups
         ],
         'user'       => [
             'trainee.basic.info',
+            'trainee.basic.info.update',
             'trainee.progress.reports.create',
             'trainee.training.application',
             'trainee.honorarium.application',

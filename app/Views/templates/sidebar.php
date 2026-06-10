@@ -40,14 +40,14 @@
           </a>
         </li>
 
-        <?php if ($user && $user->inGroup('superadmin', 'admin' /*, 'rtm-admin', 'rtm-user', 'user'*/)) {?>
+        <?php if ($user && $user->inGroup('superadmin', 'admin', 'rtm-admin', 'rtm-user', 'user')) {?>
         <li class="nav-section">
           <span class="sidebar-mini-icon">
             <i class="fa fa-user" aria-hidden="true"></i>
           </span>
           <h4 class="text-section">Training Database</h4>
         </li>
-        <?php if ($user && $user->inGroup('superadmin', 'admin', 'rtm-admin', 'rtm-user')) {?>
+        <?php if ($user && $user->inGroup('superadmin', 'admin')) {?>
         <li class="nav-item <?=set_active('fcps-part-one/passed-candidates')?>">
           <a href="<?=base_url('fcps-part-one/passed-candidates')?>">
             <i class="fa fa-users" aria-hidden="true"></i>
@@ -69,7 +69,7 @@
             <p>Basic Information</p>
           </a>
         </li>
-        <?php if ($user && $user->inGroup('superadmin', 'user')) {?>
+        <?php if ($user && $user->inGroup('superadmin')) {?>
         <li class="nav-item <?=set_active('trainings/progress-reports')?>">
           <a href="<?=base_url('trainings/progress-reports')?>">
             <i class="fa fa-clipboard" aria-hidden="true"></i>
