@@ -105,7 +105,9 @@ class TraineeController extends BaseController
         $regNo     = auth()->user()->username;
 
         $updateData = [
-            'cell' => $validData['cell'],
+            'cell'       => $validData['cell'],
+            'updated_at' => date('Y-m-d H:i:s'),
+            'updated_by' => auth()->user()->id,
         ];
 
         $update = $this->fcpsPartOneModel
@@ -121,7 +123,9 @@ class TraineeController extends BaseController
 
             if ($applicantInformation) {
                 $updateApplicationData = [
-                    'mobile' => $validData['cell'],
+                    'mobile'     => $validData['cell'],
+                    'updated_at' => date('Y-m-d H:i:s'),
+                    'updated_by' => auth()->user()->id,
                 ];
 
                 $update = $this->applicantInformationModel

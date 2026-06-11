@@ -173,3 +173,21 @@ WHERE hi.applicant_id=prv.`applicant_id`
 	AND hi.`honorarium_year`=2025 
     AND hi.`honorarium_slot_id`=2
 ORDER BY hi.`bill_sl_no` ASC;
+
+
+UPDATE `fcps_one_pass_applicants` t1
+JOIN `applicant_information` t2 ON t1.`reg_no` = t2.fcps_reg_no
+SET t1.`date_of_birth` = t2.date_of_birth
+WHERE t1.`date_of_birth` IS NULL;
+
+UPDATE `fcps_one_pass_applicants` t1
+JOIN `applicant_information` t2 ON t1.`reg_no` = t2.fcps_reg_no
+SET t1.`present_address` = t2.address
+WHERE t1.`present_address` IS NULL OR t1.`present_address`='';
+
+UPDATE `fcps_one_pass_applicants` t1
+JOIN `applicant_information` t2 ON t1.`reg_no` = t2.fcps_reg_no
+SET t1.`permanent_address` = t2.`permanent_address`
+WHERE t1.`permanent_address` IS NULL OR t1.`permanent_address`='';
+
+Website Link: https://trainee-database.bcps.edu.bd/login (After login go to menu: "Update Information")
