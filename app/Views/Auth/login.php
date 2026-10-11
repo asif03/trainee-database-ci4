@@ -13,6 +13,11 @@
     </div>
     <h3 class=" fw-bold text-success mb-1">Trainee Login</h3>
     <p class="text-muted">Welcome back! Please sign in to your account.</p>
+    <p class="text-danger fw-bold">Update Information Except e-Logbook [FCPS Part-I trainees (Medicine, Surgery,
+      Obstetrics &
+      Gynaecology,
+      Paediatrics, and
+      Allied subjects) who passed from January, 2025 onward]</p>
   </div>
   <?php if (session('error') !== null): ?>
   <div class="alert alert-danger" role="alert">

@@ -112,4 +112,13 @@ class FcpsPartOneModel extends Model
             ->countAllResults();
     }
 
+    public function getPaymentInfoWithBmdc($penNumber)
+    {
+        return $this->db->table('fcps_one_pass_applicants ap')
+            ->select('ap.fcps_part_one_year, ap.fcps_part_one_session, ap.pen_number, ap.money_receipt_no, ap.money_receipt_date, ap.reg_no, ap.applicant_name, ap.subject_id, ap.bmdc_reg_no')
+            ->where('ap.pen_number', $penNumber)
+            ->get()
+            ->getRowArray();
+    }
+
 }

@@ -191,3 +191,70 @@ SET t1.`permanent_address` = t2.`permanent_address`
 WHERE t1.`permanent_address` IS NULL OR t1.`permanent_address`='';
 
 Website Link: https://trainee-database.bcps.edu.bd/login (After login go to menu: "Update Information")
+
+
+STEP-1:
+INSERT INTO `fcps_one_pass_applicants`(`reg_no`, `applicant_name`, `father_name`, `mother_name`, `old_date_of_birth`, `mailing_address`, `present_address`, `permanent_address`, `national_id`, `pen_number`, `subject`, `cell`, `email`, `money_receipt_no`, `money_receipt_date`, `fcps_part_one_year_old`, `password`, `bmdc_reg_no`, `gender`)
+SELECT `Reg No`, `Applicants Name`, `Fathers Name`, `Mothers Name`, `date of birth`, `Mailing Address`, `Present Address`, `Permanent Address`, `National ID`, `Pen Number`, `Subject`, `Cell`, `email`, `Money Receipt No`, `Datee`, `Year of Passing FCPS-1`, `password`, `Roll`, `status` FROM `fcps1pass_reg_personal_dtl` WHERE `Year of Passing FCPS-1`='July- 2026' ORDER BY `SL` ASC;
+
+SELECT `reg_no`, `applicant_name`, `father_name`, `mother_name`, `date_of_birth`, `old_date_of_birth`, `mailing_address`, `present_address`, `permanent_address`, `national_id`, `pen_number`, `subject_id`, `subject`, `contact_res`, `cell`, `tel_office`, `email`, `money_receipt_no`, `money_receipt_date`, `fcps_part_one_year_old`, `fcps_part_one_year`, `fcps_part_one_session`, `present_posting_designation`, `training_institute`, `name_address_supervisor`, `password`, `roll`, `mbbs_year`, `mbbs_institute_id`, `mbbs_institute`, `eligible_for_final_exam`, `training_completion`, `protocol_acceptance`, `dissertaion_acceptance`, `hashedotp`, `smscounter`, `gender`, `bmdc_reg_no`, `status` FROM `fcps_one_pass_applicants` WHERE `fcps_part_one_year_old`='July- 2026' ORDER BY `id` ASC;
+
+UPDATE fcps_one_pass_applicants
+SET
+    fcps_part_one_year = RIGHT(fcps_part_one_year_old, 4),
+    fcps_part_one_session = TRIM(REPLACE(SUBSTRING_INDEX(fcps_part_one_year_old, ' ', 1), '-', ''))
+WHERE fcps_part_one_year_old = 'July- 2026';
+
+UPDATE `fcps_one_pass_applicants` t1
+JOIN `speciality` t2 ON t1.`subject` = t2.`name`
+SET t1.`subject_id` = t2.speciality_id
+WHERE t1.`subject_id` IS NULL AND t1.`fcps_part_one_year`= 2026 AND t1.fcps_part_one_session = 'July';
+
+SELECT m.*,  FROM (
+SELECT
+    DENSE_RANK() OVER (
+        PARTITION BY applicant_id
+        ORDER BY
+            honorarium_year,
+           	honorarium_slot_id DESC,
+            training_institute_id
+    ) AS ranking,
+    applicant_id,
+    bmdc_reg_no,
+    training_institute_id,
+    honorarium_year,
+    honorarium_slot_id
+FROM (
+    SELECT
+        applicant_id,
+        bmdc_reg_no,
+        training_type,
+        current_training_slot,
+        training_institute_id,
+        department_id,
+        honorarium_year,
+    	honorarium_slot_id
+    FROM honorarium_information
+    WHERE honorarium_year = 2026
+      AND honorarium_slot_id = 1
+    UNION ALL
+    SELECT
+        applicant_id,
+        bmdc_reg_no,
+        training_type,
+        current_training_slot,
+        training_institute_id,
+        department_id,
+        honorarium_year,
+    	honorarium_slot_id
+    FROM honorarium_information
+    WHERE honorarium_year = 2025
+) t
+ORDER BY applicant_id, ranking
+) m, applicant_information ap WHERE m.ranking=1 
+
+
+UPDATE `fcps_one_pass_applicants` t1
+JOIN `dob_fixer` t2 ON t1.`pen_number` = t2.`pen_no`
+SET t1.`date_of_birth` = STR_TO_DATE(t2.`dob`, '%d/%m/%Y') 
+WHERE t1.`date_of_birth` IS NULL;

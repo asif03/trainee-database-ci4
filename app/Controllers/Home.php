@@ -37,12 +37,50 @@ class Home extends BaseController
         return view('honorariums', ['bills' => $bills]);
     }
 
+    public function geteLogbokPayment($id)
+    {
+        // Define the target endpoint with the dynamic ID
+        $url = "https://eportal.bcps.edu.bd/api/auth/v1/get-course-payment-data/{$id}";
+
+        $client = \Config\Services::curlrequest();
+
+        try {
+            $response = $client->get($url, [
+                'headers' => [
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            $status = $response->getStatusCode();
+            $body   = $response->getBody();
+
+            // Debug
+            /*echo "<pre>";
+            print_r([
+            'status' => $status,
+            'body'   => $body,
+            'json'   => json_decode($body, true),
+            ]);
+            echo "</pre>";
+            die;*/
+
+            // Or return the JSON response
+            return $body;
+
+        } catch (\Exception $e) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function sendOtp()
     {
-        $penNo        = $this->request->getPost('penNo');
-        $mobileNo     = $this->request->getPost('mobileNo');
-        $emailAddress = $this->request->getPost('emailAddress');
-        $chooseOption = $this->request->getPost('chooseOption');
+        $penNo          = $this->request->getPost('penNo');
+        $mobileNo       = $this->request->getPost('mobileNo');
+        $emailAddress   = $this->request->getPost('emailAddress');
+        $chooseOption   = $this->request->getPost('chooseOption');
+        $elogBookStatus = false; // Initialize the eLogbook status variable
 
         if ($penNo == '' && ($mobileNo == '' || $emailAddress == '')) {
             return $this->response->setJSON([
@@ -76,11 +114,65 @@ class Home extends BaseController
         $checkPayment = $this->fcpsPartOneModel->checkPaymentInfo($params['pen_number'] ?? '');
 
         if ($checkPayment == 0) {
-            return $this->response->setJSON([
-                'success'    => false,
-                'message'    => 'No payment record found for the provided PEN number. Please complete the payment to proceed.',
-                'csrf_token' => csrf_hash(), // send fresh token
-            ]);
+
+            $candidatePaymentInfo = $this->fcpsPartOneModel->getPaymentInfoWithBmdc($params['pen_number'] ?? '');
+
+            // e-Logbook payment check for year 2025 and above
+            if ($candidatePaymentInfo['fcps_part_one_year'] >= 2025) {
+
+                $eLogbookPayment = $this->geteLogbokPayment($candidatePaymentInfo['bmdc_reg_no'] ?? '');
+                $paymentInfo     = json_decode($eLogbookPayment, true);
+
+                if (isset($paymentInfo['success']) && $paymentInfo['success'] === true) {
+
+                    $partOnePassedInfo = $this->fcpsPartOneModel->getPartOneTraineeByRegNo($paymentInfo['data']['reg_no'] ?? '');
+
+                    //Check if applicant is in e-Logbook
+                    if ($partOnePassedInfo['elogbook'] == 'Y') {
+                        $elogBookStatus = true;
+                    } else {
+                        $elogBookStatus = false;
+                    }
+
+                    $updateData = [
+                        'reg_no'             => $candidatePaymentInfo['bmdc_reg_no'] ?? null,
+                        'money_receipt_no'   => $paymentInfo['data']['paymentRefNo'] ?? null,
+                        'money_receipt_date' => $paymentInfo['data']['paymentDate'] ?? null,
+                        'payment_status'     => $paymentInfo['data']['paymentStaus'] ?? 'Not Paid',
+                        'paid_amount'        => $paymentInfo['data']['paymentAmount'] ?? null,
+                    ];
+
+                } elseif (isset($paymentInfo['success']) && $paymentInfo['success'] === false) {
+                    return $this->response->setJSON([
+                        'success'    => false,
+                        'message'    => $paymentInfo['message'] . ' for the provided PEN number. Please complete the Payment/Registration & Payment in <a href="https://eportal.bcps.edu.bd/" target="_blank">eLogbook</a> to proceed.',
+                        'csrf_token' => csrf_hash(), // send fresh token
+                    ]);
+                } else {
+                    return $this->response->setJSON([
+                        'success'    => false,
+                        'message'    => 'No record found for the provided PEN number.',
+                        'csrf_token' => csrf_hash(), // send fresh token
+                    ]);
+                }
+
+            } else {
+                return $this->response->setJSON([
+                    'success'    => false,
+                    'message'    => 'No payment record found for the provided PEN number. Please complete the payment to proceed.',
+                    'csrf_token' => csrf_hash(), // send fresh token
+                ]);
+            }
+            if (empty($candidatePaymentInfo)) {
+                return $this->response->setJSON([
+                    'success'    => false,
+                    'message'    => 'No payment record found for the provided PEN number. Please complete the payment to proceed.',
+                    'csrf_token' => csrf_hash(), // send fresh token
+                ]);
+            }
+
+            //return dd($candidatePaymentInfo); //geteLogbokPayment(bmdc)
+
         }
 
         $trainee = $this->fcpsPartOneModel->getTraineeInfoByParams($params);

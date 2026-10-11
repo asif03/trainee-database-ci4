@@ -116,15 +116,15 @@ class Report extends BaseController
         $sheet->setCellValue('L1', 'Institute Name');
         $sheet->setCellValue('M1', 'Department Name');
         $sheet->setCellValue('N1', 'Total Previous Training');
-        $sheet->setCellValue('O1', 'Applied for Hornorarium');
-        $sheet->setCellValue('P1', 'Bank Name');
-        $sheet->setCellValue('Q1', 'Branch Name');
-        $sheet->setCellValue('R1', 'Account No');
-        $sheet->setCellValue('S1', 'Routing No');
-        $sheet->setCellValue('T1', 'Honorarium Year');
-        $sheet->setCellValue('U1', 'Honorarium Session');
-        $sheet->setCellValue('V1', 'Eligible Status');
-        //$sheet->setCellValue('T1', 'Remarks');
+        $sheet->setCellValue('O1', 'Current Training Slot');
+        $sheet->setCellValue('P1', 'Applied for Hornorarium');
+        $sheet->setCellValue('Q1', 'Bank Name');
+        $sheet->setCellValue('R1', 'Branch Name');
+        $sheet->setCellValue('S1', 'Account No');
+        $sheet->setCellValue('T1', 'Routing No');
+        $sheet->setCellValue('U1', 'Honorarium Year');
+        $sheet->setCellValue('V1', 'Honorarium Session');
+        $sheet->setCellValue('W1', 'Eligible Status');
 
         // Fetching additional data for each user
         $data = $this->honorariumModel->getBillInfos($where);
@@ -145,13 +145,14 @@ class Report extends BaseController
             $sheet->setCellValue('L' . $row, $item['training_institute_name']);
             $sheet->setCellValue('M' . $row, $item['department_name']);
             $sheet->setCellValue('N' . $row, $item['previous_training_inmonth']);
-            $sheet->setCellValue('O' . $row, $item['honorarium_position']);
-            $sheet->setCellValue('P' . $row, $item['new_bank_name']);
-            $sheet->setCellValue('Q' . $row, $item['branch_name']);
-            $sheet->setCellValueExplicit('R' . $row, $item['account_no'], DataType::TYPE_STRING);
-            $sheet->setCellValueExplicit('S' . $row, $item['routing_number'], DataType::TYPE_STRING);
-            $sheet->setCellValue('T' . $row, $item['honorarium_year']);
-            $sheet->setCellValue('U' . $row, $item['slot_name']);
+            $sheet->setCellValue('O' . $row, $item['current_training_slot']);
+            $sheet->setCellValue('P' . $row, $item['honorarium_position']);
+            $sheet->setCellValue('Q' . $row, $item['new_bank_name']);
+            $sheet->setCellValue('R' . $row, $item['branch_name']);
+            $sheet->setCellValueExplicit('S' . $row, $item['account_no'], DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('T' . $row, $item['routing_number'], DataType::TYPE_STRING);
+            $sheet->setCellValue('U' . $row, $item['honorarium_year']);
+            $sheet->setCellValue('V' . $row, $item['slot_name']);
 
             // Set eligible status
             if ($item['eligible_status'] == 'Y') {
@@ -162,7 +163,7 @@ class Report extends BaseController
                 $item['eligible_status'] = 'Pending';
             }
 
-            $sheet->setCellValue('V' . $row, $item['eligible_status']);
+            $sheet->setCellValue('W' . $row, $item['eligible_status']);
 
             $row++;
         }
