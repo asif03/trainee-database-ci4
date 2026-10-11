@@ -115,7 +115,12 @@ class Home extends BaseController
 
         if ($checkPayment == 0) {
 
-            $candidatePaymentInfo = $this->fcpsPartOneModel->getPaymentInfoWithBmdc($params['pen_number'] ?? '');
+            $candidatePaymentInfo = $this->fcpsPartOneModel->getPaymentInfoWithPenNo($params['pen_number'] ?? '');
+
+            /*echo "<pre>";
+            print_r($candidatePaymentInfo);
+            echo "</pre>";
+            die;*/
 
             // e-Logbook payment check for year 2025 and above
             if ($candidatePaymentInfo['fcps_part_one_year'] >= 2025) {
@@ -125,27 +130,29 @@ class Home extends BaseController
 
                 if (isset($paymentInfo['success']) && $paymentInfo['success'] === true) {
 
-                    $partOnePassedInfo = $this->fcpsPartOneModel->getPartOneTraineeByRegNo($paymentInfo['data']['reg_no'] ?? '');
+                    $partOnePassedInfo = $this->fcpsPartOneModel->getPartOneTraineeByRegNo($candidatePaymentInfo['reg_no'] ?? '');
 
                     //Check if applicant is in e-Logbook
-                    if ($partOnePassedInfo['elogbook'] == 'Y') {
-                        $elogBookStatus = true;
+                    /*if ($partOnePassedInfo['elogbook'] == 'Y') {
+                    $elogBookStatus = true;
                     } else {
-                        $elogBookStatus = false;
-                    }
+                    $elogBookStatus = false;
+                    }*/
 
                     $updateData = [
-                        'reg_no'             => $candidatePaymentInfo['bmdc_reg_no'] ?? null,
-                        'money_receipt_no'   => $paymentInfo['data']['paymentRefNo'] ?? null,
-                        'money_receipt_date' => $paymentInfo['data']['paymentDate'] ?? null,
-                        'payment_status'     => $paymentInfo['data']['paymentStaus'] ?? 'Not Paid',
-                        'paid_amount'        => $paymentInfo['data']['paymentAmount'] ?? null,
+                        'online_trans_ref_no' => $paymentInfo['data']['paymentRefNo'] ?? null,
+                        'money_receipt_no'    => substr($paymentInfo['data']['paymentRefNo'], strrpos($paymentInfo['data']['paymentRefNo'], '-') + 1) ?? null,
+                        'money_receipt_date'  => $paymentInfo['data']['paymentDate'] ?? null,
+                        'payment_status'      => isset($paymentInfo['data']['paymentStaus']) ? strtoupper($paymentInfo['data']['paymentStaus']) : 'UNPAID',
+                        'payment_amount'      => $paymentInfo['data']['paymentAmount'] ?? null,
                     ];
+
+                    $this->fcpsPartOneModel->update($partOnePassedInfo['id'], $updateData);
 
                 } elseif (isset($paymentInfo['success']) && $paymentInfo['success'] === false) {
                     return $this->response->setJSON([
                         'success'    => false,
-                        'message'    => $paymentInfo['message'] . ' for the provided PEN number. Please complete the Payment/Registration & Payment in <a href="https://eportal.bcps.edu.bd/" target="_blank">eLogbook</a> to proceed.',
+                        'message'    => $paymentInfo['message'] . ' for the provided PEN number. Please complete the Registration & Payment in <a href="https://eportal.bcps.edu.bd/" target="_blank">eLogbook</a> to proceed.',
                         'csrf_token' => csrf_hash(), // send fresh token
                     ]);
                 } else {
@@ -163,16 +170,6 @@ class Home extends BaseController
                     'csrf_token' => csrf_hash(), // send fresh token
                 ]);
             }
-            if (empty($candidatePaymentInfo)) {
-                return $this->response->setJSON([
-                    'success'    => false,
-                    'message'    => 'No payment record found for the provided PEN number. Please complete the payment to proceed.',
-                    'csrf_token' => csrf_hash(), // send fresh token
-                ]);
-            }
-
-            //return dd($candidatePaymentInfo); //geteLogbokPayment(bmdc)
-
         }
 
         $trainee = $this->fcpsPartOneModel->getTraineeInfoByParams($params);

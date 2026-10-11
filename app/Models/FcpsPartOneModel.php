@@ -10,7 +10,8 @@ class FcpsPartOneModel extends Model
     protected $primaryKey = 'id';
 
     protected $allowedFields = ['date_of_birth', 'mailing_address', 'present_address', 'permanent_address', 'national_id', 'pen_number',
-        'subject_id', 'subject', 'contact_res', 'cell', 'tel_office', 'email', 'money_receipt_no', 'money_receipt_date', 'training_institute', 'roll',
+        'subject_id', 'subject', 'contact_res', 'cell', 'tel_office', 'email', 'payment_staus', 'online_trans_ref_no',
+        'money_receipt_no', 'payment_amount', 'money_receipt_date', 'training_institute', 'roll',
         'mbbs_year', 'mbbs_institute_id', 'mbbs_institute', 'eligible_for_final_exam', 'training_completion', 'protocol_acceptance', 'dissertaion_acceptance',
         'hashedotp', 'smscounter', 'created_by', 'updated_by', 'updated_at'];
 
@@ -112,10 +113,11 @@ class FcpsPartOneModel extends Model
             ->countAllResults();
     }
 
-    public function getPaymentInfoWithBmdc($penNumber)
+    public function getPaymentInfoWithPenNo($penNumber)
     {
         return $this->db->table('fcps_one_pass_applicants ap')
-            ->select('ap.fcps_part_one_year, ap.fcps_part_one_session, ap.pen_number, ap.money_receipt_no, ap.money_receipt_date, ap.reg_no, ap.applicant_name, ap.subject_id, ap.bmdc_reg_no')
+            ->select('ap.fcps_part_one_year, ap.fcps_part_one_session, ap.pen_number, ap.money_receipt_no,
+                        ap.money_receipt_date, ap.reg_no, ap.applicant_name, ap.subject_id, ap.bmdc_reg_no')
             ->where('ap.pen_number', $penNumber)
             ->get()
             ->getRowArray();
