@@ -10,7 +10,7 @@ class FcpsPartOneModel extends Model
     protected $primaryKey = 'id';
 
     protected $allowedFields = ['date_of_birth', 'mailing_address', 'present_address', 'permanent_address', 'national_id', 'pen_number',
-        'subject_id', 'subject', 'contact_res', 'cell', 'tel_office', 'email', 'payment_staus', 'online_trans_ref_no',
+        'subject_id', 'subject', 'contact_res', 'cell', 'tel_office', 'email', 'payment_status', 'online_trans_ref_no',
         'money_receipt_no', 'payment_amount', 'money_receipt_date', 'training_institute', 'roll',
         'mbbs_year', 'mbbs_institute_id', 'mbbs_institute', 'eligible_for_final_exam', 'training_completion', 'protocol_acceptance', 'dissertaion_acceptance',
         'hashedotp', 'smscounter', 'created_by', 'updated_by', 'updated_at'];

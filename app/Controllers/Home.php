@@ -76,11 +76,10 @@ class Home extends BaseController
 
     public function sendOtp()
     {
-        $penNo          = $this->request->getPost('penNo');
-        $mobileNo       = $this->request->getPost('mobileNo');
-        $emailAddress   = $this->request->getPost('emailAddress');
-        $chooseOption   = $this->request->getPost('chooseOption');
-        $elogBookStatus = false; // Initialize the eLogbook status variable
+        $penNo        = $this->request->getPost('penNo');
+        $mobileNo     = $this->request->getPost('mobileNo');
+        $emailAddress = $this->request->getPost('emailAddress');
+        $chooseOption = $this->request->getPost('chooseOption');
 
         if ($penNo == '' && ($mobileNo == '' || $emailAddress == '')) {
             return $this->response->setJSON([
@@ -117,11 +116,6 @@ class Home extends BaseController
 
             $candidatePaymentInfo = $this->fcpsPartOneModel->getPaymentInfoWithPenNo($params['pen_number'] ?? '');
 
-            /*echo "<pre>";
-            print_r($candidatePaymentInfo);
-            echo "</pre>";
-            die;*/
-
             // e-Logbook payment check for year 2025 and above
             if ($candidatePaymentInfo['fcps_part_one_year'] >= 2025) {
 
@@ -131,13 +125,6 @@ class Home extends BaseController
                 if (isset($paymentInfo['success']) && $paymentInfo['success'] === true) {
 
                     $partOnePassedInfo = $this->fcpsPartOneModel->getPartOneTraineeByRegNo($candidatePaymentInfo['reg_no'] ?? '');
-
-                    //Check if applicant is in e-Logbook
-                    /*if ($partOnePassedInfo['elogbook'] == 'Y') {
-                    $elogBookStatus = true;
-                    } else {
-                    $elogBookStatus = false;
-                    }*/
 
                     $updateData = [
                         'online_trans_ref_no' => $paymentInfo['data']['paymentRefNo'] ?? null,
@@ -354,11 +341,12 @@ class Home extends BaseController
 
     public function verifyOtp()
     {
-        $penNo        = $this->request->getPost('penNo');
-        $mobileNo     = $this->request->getPost('mobileNo');
-        $emailAddress = $this->request->getPost('emailAddress');
-        $chooseOption = $this->request->getPost('chooseOption');
-        $otp          = $this->request->getPost('otp');
+        $penNo          = $this->request->getPost('penNo');
+        $mobileNo       = $this->request->getPost('mobileNo');
+        $emailAddress   = $this->request->getPost('emailAddress');
+        $chooseOption   = $this->request->getPost('chooseOption');
+        $otp            = $this->request->getPost('otp');
+        $elogBookStatus = false; // Initialize the eLogbook status variable
 
         if ($penNo == '' && ($mobileNo == '' || $emailAddress == '')) {
             return $this->response->setJSON([
@@ -393,6 +381,16 @@ class Home extends BaseController
 
         if ($trainee) {
 
+            $partOnePassedInfo = $this->fcpsPartOneModel->getPartOneTraineeByRegNo($trainee['reg_no'] ?? '');
+            $nonElogBookUrl    = 'https://bcps.edu.bd/p1-reg/'; // URL for non-eLogbook users
+
+            //Check if applicant is in e-Logbook
+            if ($partOnePassedInfo['elogbook'] == 'Y') {
+                $elogBookStatus = true;
+            } else {
+                $elogBookStatus = false;
+            }
+
             if (password_verify($otp, $trainee['hashedotp'])) {
 
                 if ($chooseOption === 'both' && $trainee['smscounter'] >= env('sms.max', 2)) {
@@ -401,16 +399,32 @@ class Home extends BaseController
 
                 if ($chooseOption === 'email') {
 
-                    $data = [
-                        'recipientName' => $trainee['name'],
-                        'regNumber'     => $trainee['reg_no'],
-                        'password'      => $trainee['password'],
-                        // Footer variables (use actual application settings)
-                        'websiteUrl'    => 'https://www.bcps.edu.bd',
-                        'supportEmail'  => 'it@bcps.edu.bd',
-                        'contactNumber' => '+880-2-222284189',
-                        'loginUrl'      => site_url('login'), // Assuming you have a route named 'login'
-                    ];
+                    if ($elogBookStatus) {
+                        $data = [
+                            'elogBookStatus' => $elogBookStatus,
+                            'recipientName'  => $trainee['name'],
+                            'regNumber'      => $trainee['reg_no'],
+                            'password'       => "",
+                            // Footer variables (use actual application settings)
+                            'websiteUrl'     => 'https://www.bcps.edu.bd',
+                            'supportEmail'   => 'it@bcps.edu.bd',
+                            'contactNumber'  => '+880-2-222284189',
+                            'loginUrl'       => 'https://eportal.bcps.edu.bd/', // Assuming you have a route named 'login'
+                        ];
+                    } else {
+                        $data = [
+                            'elogBookStatus' => $elogBookStatus,
+                            'recipientName'  => $trainee['name'],
+                            'regNumber'      => $trainee['reg_no'],
+                            'password'       => $trainee['password'],
+                            // Footer variables (use actual application settings)
+                            'websiteUrl'     => 'https://www.bcps.edu.bd',
+                            'supportEmail'   => 'it@bcps.edu.bd',
+                            'contactNumber'  => '+880-2-222284189',
+                            //'loginUrl'       => site_url('login'), // Assuming you have a route named 'login'
+                            'loginUrl'       => $nonElogBookUrl, // Assuming you have a route named 'login'
+                        ];
+                    }
 
                     $to      = $trainee['email'];
                     $subject = 'Welcome! Your BCPS Registration Credentials';
@@ -429,8 +443,13 @@ class Home extends BaseController
                         ]);
                     }
                 } elseif ($chooseOption === 'sms') {
-                    $mobile  = $trainee['cell'];
-                    $message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . site_url('login') . '. For support, contact +880-222284189.';
+                    $mobile = $trainee['cell'];
+                    if ($elogBookStatus) {
+                        $message = 'Welcome! Your Online Registration No.: ' . $trainee['reg_no'] . '. For support, contact +880-222284189.';
+                    } else {
+                        $message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . $nonElogBookUrl . '. For support, contact +880-222284189.';
+                    }
+                    //$message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . site_url('login') . '. For support, contact +880-222284189.';
 
                     $smsService   = new SmsService();
                     $response     = $smsService->singleSms($mobile, $message, uniqid());
@@ -465,16 +484,33 @@ class Home extends BaseController
                     }
 
                 } elseif ($chooseOption === 'both') {
-                    $data = [
-                        'recipientName' => $trainee['name'],
-                        'regNumber'     => $trainee['reg_no'],
-                        'password'      => $trainee['password'],
-                        // Footer variables (use actual application settings)
-                        'websiteUrl'    => 'https://www.bcps.edu.bd',
-                        'supportEmail'  => 'it@bcps.edu.bd',
-                        'contactNumber' => '+880-2-222284189',
-                        'loginUrl'      => site_url('login'), // Assuming you have a route named 'login'
-                    ];
+
+                    if ($elogBookStatus) {
+                        $data = [
+                            'elogBookStatus' => $elogBookStatus,
+                            'recipientName'  => $trainee['name'],
+                            'regNumber'      => $trainee['reg_no'],
+                            'password'       => "",
+                            // Footer variables (use actual application settings)
+                            'websiteUrl'     => 'https://www.bcps.edu.bd',
+                            'supportEmail'   => 'it@bcps.edu.bd',
+                            'contactNumber'  => '+880-2-222284189',
+                            'loginUrl'       => 'https://eportal.bcps.edu.bd/', // Assuming you have a route named 'login'
+                        ];
+                    } else {
+                        $data = [
+                            'elogBookStatus' => $elogBookStatus,
+                            'recipientName'  => $trainee['name'],
+                            'regNumber'      => $trainee['reg_no'],
+                            'password'       => $trainee['password'],
+                            // Footer variables (use actual application settings)
+                            'websiteUrl'     => 'https://www.bcps.edu.bd',
+                            'supportEmail'   => 'it@bcps.edu.bd',
+                            'contactNumber'  => '+880-2-222284189',
+                            //'loginUrl'       => site_url('login'), // Assuming you have a route named 'login'
+                            'loginUrl'       => $nonElogBookUrl, // Assuming you have a route named 'login'
+                        ];
+                    }
 
                     $to      = $trainee['email'];
                     $subject = 'Welcome! Your BCPS Registration Credentials';
@@ -483,11 +519,15 @@ class Home extends BaseController
                     $message = view('Emails/registration_welcome', $data);
 
                     $emailService = new EmailService();
-                    $result       = $emailService->sendEmail($to, $subject, $message); // You can pass parameters if needed
+                    $result       = $emailService->sendEmail($to, $subject, $message);
 
                     if ($result) {
-                        $mobile  = $trainee['cell'];
-                        $message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . site_url('login') . '. For support, contact +880-222284189.';
+                        $mobile = $trainee['cell'];
+                        if ($elogBookStatus) {
+                            $message = 'Welcome! Your Online Registration No.: ' . $trainee['reg_no'] . '. For support, contact +880-222284189.';
+                        } else {
+                            $message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . $nonElogBookUrl . '. For support, contact +880-222284189.';
+                        }
 
                         $smsService   = new SmsService();
                         $response     = $smsService->singleSms($mobile, $message, uniqid());
@@ -509,8 +549,12 @@ class Home extends BaseController
                             }
                         }
                     } else {
-                        $mobile  = $trainee['cell'];
-                        $message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . site_url('login') . '. For support, contact +880-222284189.';
+                        $mobile = $trainee['cell'];
+                        if ($elogBookStatus) {
+                            $message = 'Welcome! Your Online Registration No.: ' . $trainee['reg_no'] . '. For support, contact +880-222284189.';
+                        } else {
+                            $message = 'Welcome! Your BCPS Registration Credentials: Registration No.: ' . $trainee['reg_no'] . ', Password: ' . $trainee['password'] . '. Login at: ' . $nonElogBookUrl . '. For support, contact +880-222284189.';
+                        }
 
                         $smsService   = new SmsService();
                         $response     = $smsService->singleSms($mobile, $message, uniqid());

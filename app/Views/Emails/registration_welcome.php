@@ -68,15 +68,33 @@
     </div>
     <div class="content">
       <p>Dear <?=esc($recipientName)?>,</p>
-      <p>Your registration with the Bangladesh College of Physicians & Surgeons (BCPS) is now complete. Below are your
-        login credentials:</p>
+
+      <?php if ($elogBookStatus): ?>
+      <p>
+        Your registration no. (afeter passing FCPS Part-I) of Bangladesh College of Physicians & Surgeons (BCPS) is
+        below here:
+      </p>
+      <?php else: ?>
+      <p>
+        Your registration with the Bangladesh College of Physicians & Surgeons (BCPS) is now complete. Below are your
+        login credentials:
+      </p>
+      <?php endif; ?>
 
       <div class="credentials-box">
+        <?php if ($elogBookStatus): ?>
+        <p><strong>Registration Number:</strong> <span class="important-text"><?=esc($regNumber)?></span></p>
+        <p><strong>Login URL:</strong> <a href="<?=esc($loginUrl)?>">eLogbook Portal</a></p>
+        <?php else: ?>
         <p><strong>Registration Number (User ID):</strong> <span class="important-text"><?=esc($regNumber)?></span></p>
         <p><strong>Your Temporary Password:</strong> <span class="important-text"><?=esc($password)?></span></p>
+        <p><strong>Login URL:</strong> <a href="<?=esc($loginUrl)?>"><?=esc($loginUrl)?></a></p>
+        <?php endif; ?>
       </div>
 
+      <?php if (!$elogBookStatus): ?>
       <p>Please use these credentials to <a href="<?=esc($loginUrl)?>">log in to your account</a> immediately.</p>
+      <?php endif; ?>
       <p>For any assistance, feel free to contact our support team.</p>
       <p>Warm regards,</p>
       <p>

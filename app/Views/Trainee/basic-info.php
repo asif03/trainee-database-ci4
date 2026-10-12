@@ -88,7 +88,7 @@
                 <?php echo $basicInfo['date_of_birth'] == '' ? $basicInfo['old_date_of_birth'] : $basicInfo['date_of_birth']; ?>
               </div>
             </li>
-            <li class="list-group-item d-flex justify-content-between align-items-center">
+            <!--<li class="list-group-item d-flex justify-content-between align-items-center">
               <div class="fw-semibold <?=$validation->hasError('cell') ? 'text-danger' : 'text-success'?>">
                 <span class="text-danger">**</span>
                 Mobile Number (Own Biometric)
@@ -99,6 +99,10 @@
                   value="<?=esc($basicInfo['cell'])?>">
                 <?=$validation->hasError('cell') ? '<div class="text-danger mt-1">' . $validation->getError('cell') . '</div>' : ''?>
               </div>
+            </li>-->
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div class="fw-semibold text-muted">Mobile Number (Own Biometric)</div>
+              <div class="text-dark text-end"><?=esc($basicInfo['cell'])?></div>
             </li>
             <li class="list-group-item d-flex justify-content-between align-items-center">
               <div class="fw-semibold text-muted">Email</div>
@@ -117,15 +121,15 @@
               <div class="text-dark text-end"><?=esc($basicInfo['permanent_address'])?></div>
             </li>
           </ul>
-          <div class="d-flex justify-content-between gap-3">
+          <!--<div class="d-flex justify-content-between gap-3">
             <button type="submit" class="btn btn-success w-50">
               <i class="fas fa-check-circle me-2"></i> Update Information
             </button>
-          </div>
+          </div>-->
         </form>
       </div>
     </div>
-    <!-- <div class="col-lg-6">
+    <div class="col-lg-6">
       <div class="card info-card p-4">
         <h5 class="fw-bold text-dark mb-4">FCPS Part-I Details</h5>
         <ul class="list-group list-group-flush info-list">
@@ -150,7 +154,7 @@
           </li>
         </ul>
       </div>
-    </div> -->
+    </div>
   </div>
 </div>
 <?php $this->endSection()?>

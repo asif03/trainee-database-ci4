@@ -11,6 +11,7 @@ use App\Models\HonorariumInformationModel;
 use App\Models\HonorariumPreviousTrainingModel;
 use App\Models\HonorariumSlotModel;
 use App\Models\InstituteModel;
+use App\Models\JoinTrainingInfoModel;
 use App\Models\MbbsInstituteModel;
 use App\Models\MidTermModel;
 use App\Models\ProgressReportModel;
@@ -35,6 +36,7 @@ class TraineeController extends BaseController
     protected $honorariumPreviousTrainingModel;
     protected $applicantFileModel;
     protected $midTermModel;
+    protected $joinTrainingInfoModel;
     protected $db;
 
     public function __construct()
@@ -54,6 +56,7 @@ class TraineeController extends BaseController
         $this->honorariumPreviousTrainingModel = new HonorariumPreviousTrainingModel();
         $this->applicantFileModel              = new ApplicantFileModel();
         $this->midTermModel                    = new MidTermModel();
+        $this->joinTrainingInfoModel           = new JoinTrainingInfoModel();
         $this->db                              = \Config\Database::connect();
     }
 
@@ -839,6 +842,27 @@ class TraineeController extends BaseController
             return $data;
         }
 
+        //Check if the applicant has already submitted joining application or not
+        $currentSlotYear    = env('bill.currentYear', date('Y'));
+        $currentSlotSession = env('bill.currentSlot', 0) == 1 ? 'January' : 'July';
+
+        $whereJoining = [
+            'applicant_id'       => $partOnePassedInfo['id'],
+            'submission_year'    => $currentSlotYear,
+            'submission_session' => $currentSlotSession,
+
+        ];
+        $applicantJoiningInfo = $this->joinTrainingInfoModel->getJoiningInfoByParams($whereJoining);
+
+        if (!$applicantJoiningInfo) {
+            $data = [
+                'isError'    => true,
+                'message'    => 'You have not submitted a joining application for this slot. Therefore, you are not eligible to submit the bill form.',
+                'honorarium' => null,
+            ];
+            return $data;
+        }
+
         $applicant                = $this->applicantInformationModel->getApplicantInfoByRegNo($bcpsRegNo);
         $checkTrainingApplication = $this->applicantInformationModel->checkBcpsRegiAlreadyUsed($bcpsRegNo);
 
@@ -1013,6 +1037,17 @@ class TraineeController extends BaseController
                 if ($data['honorarium']->maxHonorariumCnt == null) {
                     $data['honorarium']->maxHonorariumCnt = 0;
                 }
+
+                //Current training data for the current joining information
+                $whereJoining = [
+                    'applicant_id'       => $generalInfo['id'],
+                    'submission_year'    => env('bill.currentYear', date('Y')),
+                    'submission_session' => env('bill.currentSlot', 0) == 1 ? 'January' : 'July',
+
+                ];
+                $currentTrainingData = $this->joinTrainingInfoModel->getJoiningInfoByParams($whereJoining);
+
+                $data['currentTraining'] = $currentTrainingData;
             }
 
             //dd($data);
